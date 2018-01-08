@@ -1,0 +1,4445 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0",
+    "title": "Consul HTTP API",
+    "description": "This is an unnoficial OpenAPI for the Hashicorp Consul API. It was originally setup by Brian Lalor (@blalor) as an API Blueprint document (https://consul.docs.apiary.io/), and then taken by Kin Lane (kinlane) and converted to OpenAPI 2.0 (fka Swagger) using APIMATIC API Transformer. Ideally, Hashicorp would take this and own themselves, but until this is the best copy out there.",
+    "license": {
+      "name": "MIT",
+      "url": "http://github.com/gruntjs/grunt/blob/master/LICENSE-MIT"
+    }
+  },
+  "host": "www.example.com",
+  "basePath": "/v1/",
+  "schemes": [
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/kv/{+key}": {
+      "get": {
+        "description": "Retrieve the specified key, or if `recurse` is provided, return all keys with\nthe given prefix.  If `keys` is provided, return a list of the keys under the\ngiven prefix; used with `separator`, list only up to a given separator.\nA blocking query can be used to wait for a value to change.\nIf `recurse` is used, the `X-Consul-Index` corresponds to the latest\n`ModifyIndex` and so a blocking query waits until any of the listed keys are\nupdated.\nThis endpoint supports blocking queries and all consistency modes.\n#### Response Payload\n- `CreateIndex` - internal index value that represents when the entry was created\n- `ModifyIndex` - last index that modified this key; corresponds to the `X-Consul-Index` header value\n- `LockIndex`   - last index of a successful lock acquisition\n- `Key`         - full path of the entry\n- `Flags`       - opaque unsigned integer that can be attached to each entry; use of this is left totally to the user\n- `Session`     - key provides the session that owns the lock\n- `Value`       - a base64 key value",
+        "summary": "Retrieve key",
+        "tags": [
+          "KV"
+        ],
+        "operationId": "V1KvByKeyGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "dc",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "datacenter"
+          },
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "the key"
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "per-request ACL token"
+          },
+          {
+            "name": "index",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "initiates a blocking query"
+          },
+          {
+            "name": "wait",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "limits how long query will potentially block for; use with `index`"
+          },
+          {
+            "name": "recurse",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "return all keys with the given prefix"
+          },
+          {
+            "name": "keys",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "return a list of the keys under the given prefix"
+          },
+          {
+            "name": "separator",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "with `keys`, list only up to a given separator"
+          },
+          {
+            "name": "raw",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "with non-recursive get, response is raw value of key, without encoding"
+          },
+          {
+            "name": "consistent",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "consistent read mode"
+          },
+          {
+            "name": "stale",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "stale read mode"
+          },
+          {
+            "name": "pretty",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "if provided, formatted JSON is returned"
+          },
+          {
+            "name": "+key",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "flags",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "cas",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "acquire",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "release",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/RetrieveKeyResponse"
+              }
+            },
+            "examples": {
+              "application/json": [
+                {
+                  "CreateIndex": 100,
+                  "ModifyIndex": 200,
+                  "LockIndex": 200,
+                  "Key": "zip",
+                  "Flags": 0,
+                  "Value": "dGVzdA==",
+                  "Session": "adf4238a-882b-9ddc-4a9d-5b6758e4159e"
+                }
+              ]
+            }
+          },
+          "404": {
+            "description": "",
+            "schema": {}
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      },
+      "put": {
+        "description": "The return value is simply either `true` or `false`.\nIf `false` is returned, then the update has not taken place.\nComplex locking and synchronization operations are possbile.\n#### Check-And-Set\nClients may build more complex synchronization primives using the Check-And-Set\noperation with the `cas` parameter.\nIf the `cas` value is `0`, Consul will only create the key if it does not already exist.\nIf the `cas` value is non-zero, then the key is only updated if the index\nmatches the `ModifyIndex` for the key.\n#### Locking\nLocking is a useful feature that allows leader election to be built on top of\nConsul.\nAcquire a lock by providing the `acquire` parameter with a valid session ID. If\nthe lock is not held, this increments the `LockIndex` and sets the `Session`\nvalue of the key in addition to updating the key contents. A key does not need\nto exist to be acquired.\nYield a lock by providing the `release` parameter with the ID of the session\nholding the lock.Â  This will leave the `LockIndex` unmodified but will clear the\nassociated `Session` of the key. The key must be held by this session to be\nunlocked.",
+        "summary": "Create or Update Key",
+        "tags": [
+          "KV"
+        ],
+        "operationId": "V1KvByKeyPut",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dc",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "datacenter"
+          },
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "the key"
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "per-request ACL token"
+          },
+          {
+            "name": "flags",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "an unsigned value between 0 and 2^64-1\nOpaque to the user, but client applications may use it."
+          },
+          {
+            "name": "cas",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "performs a Check-And-Set operation"
+          },
+          {
+            "name": "acquire",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "performs a lock acquisition operation"
+          },
+          {
+            "name": "release",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "performs a lock release operation"
+          },
+          {
+            "name": "+key",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "wait",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "index",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "keys",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "recurse",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "separator",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "stale",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "consistent",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "pretty",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "raw",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "text/plain": "true"
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      },
+      "delete": {
+        "description": "Delete a single key or all keys sharing a prefix.\nIf the `recurse` parameter is provided, then all keys with the prefix are\ndeleted, otherwise only the specified key.",
+        "summary": "Delete a Key",
+        "tags": [
+          "KV"
+        ],
+        "operationId": "V1KvByKeyDelete",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "dc",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "datacenter"
+          },
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "the key"
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "per-request ACL token"
+          },
+          {
+            "name": "recurse",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "all keys with the prefix are deleted"
+          },
+          {
+            "name": "+key",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "wait",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "index",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "keys",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "separator",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "stale",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "consistent",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "pretty",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "raw",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "flags",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "cas",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "acquire",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "release",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "x-unitTests": [
+          {
+            "request": {
+              "method": "DELETE",
+              "uri": "/kv/{+key}"
+            },
+            "expectedResponse": {
+              "x-allowExtraHeaders": true,
+              "x-bodyMatchMode": "NONE",
+              "x-arrayOrderedMatching": false,
+              "x-arrayCheckCount": false,
+              "x-matchResponseSchema": true,
+              "headers": {}
+            },
+            "x-testShouldPass": true,
+            "x-testEnabled": true,
+            "x-testName": "Delete a Key1",
+            "x-testDescription": "Delete a single key or all keys sharing a prefix.\nIf the `recurse` parameter is provided, then all keys with the prefix are\ndeleted, otherwise only the specified key."
+          }
+        ],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/agent/checks": {
+      "get": {
+        "description": "This endpoint is used to return the all the checks that are registered with the\nlocal agent.  These checks were either provided through configuration files, or\nadded dynamically using the HTTP API.  It is important to note that the checks\nknown by the agent may be different than those reported by the Catalog. This is\nusually due to changes being made while there is no leader elected.  The agent\nperforms active anti-entropy, so in most situations everything will be in sync\nwithin a few seconds.",
+        "summary": "Return the checks the local agent is managing",
+        "tags": [
+          "Agent control"
+        ],
+        "operationId": "V1AgentChecksGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ReturnTheChecksTheLocalAgentIsManagingResponse"
+            },
+            "examples": {
+              "application/json": {
+                "service:redis": {
+                  "Node": "foobar",
+                  "CheckID": "service:redis",
+                  "Name": "Service 'redis' check",
+                  "Status": "passing",
+                  "Notes": "",
+                  "Output": "",
+                  "ServiceID": "redis",
+                  "ServiceName": "redis"
+                }
+              }
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/agent/services": {
+      "get": {
+        "description": "This endpoint is used to return the all the services that are registered with\nthe local agent.  These services were either provided through configuration\nfiles, or added dynamically using the HTTP API.  It is important to note that\nthe services known by the agent may be different than those reported by the\nCatalog.  This is usually due to changes being made while there is no leader\nelected.  The agent performs active anti-entropy, so in most situations\neverything will be in sync within a few seconds.",
+        "summary": "Return the services local agent is managing",
+        "tags": [
+          "Agent control"
+        ],
+        "operationId": "V1AgentServicesGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ReturnTheServicesLocalAgentIsManagingResponse"
+            },
+            "examples": {
+              "application/json": {
+                "redis": {
+                  "ID": "redis",
+                  "Service": "redis",
+                  "Tags": null,
+                  "Port": 8000
+                }
+              }
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/agent/members": {
+      "get": {
+        "description": "This endpoint returns the members the agent sees in the cluster gossip pool.\nDue to the nature of gossip, this is eventually consistent and the results may\ndiffer by agent.  The strongly consistent view of nodes is instead provided by\n`/catalog/nodes` (@todo link).\nFor agents running in server mode, providing `wan=1` returns the list of WAN\nmembers instead of the LAN members which is default.",
+        "summary": "Return the members as seen by the local serf agent",
+        "tags": [
+          "Agent control"
+        ],
+        "operationId": "V1AgentMembersGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "wan",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "`1` returns list of WAN instead of LAN members"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ReturnTheMembersAsSeenByTheLocalSerfAgentResponse"
+              }
+            },
+            "examples": {
+              "application/json": [
+                {
+                  "Name": "foobar",
+                  "Addr": "10.1.10.12",
+                  "Port": 8301,
+                  "Tags": {
+                    "bootstrap": "1",
+                    "dc": "dc1",
+                    "port": "8300",
+                    "role": "consul"
+                  },
+                  "Status": 1,
+                  "ProtocolMin": 1,
+                  "ProtocolMax": 2,
+                  "ProtocolCur": 2,
+                  "DelegateMin": 1,
+                  "DelegateMax": 3,
+                  "DelegateCur": 3
+                }
+              ]
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/agent/self": {
+      "get": {
+        "description": "This endpoint is used to return configuration of the local agent and member information.",
+        "summary": "Return the local node configuration",
+        "tags": [
+          "Agent control"
+        ],
+        "operationId": "V1AgentSelfGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ReturnTheLocalNodeConfigurationResponse"
+            },
+            "examples": {
+              "application/json": {
+                "Config": {
+                  "Bootstrap": true,
+                  "Server": true,
+                  "Datacenter": "dc1",
+                  "DataDir": "/tmp/consul",
+                  "DNSRecursor": "",
+                  "Domain": "consul.",
+                  "LogLevel": "INFO",
+                  "NodeName": "foobar",
+                  "ClientAddr": "127.0.0.1",
+                  "BindAddr": "0.0.0.0",
+                  "AdvertiseAddr": "10.1.10.12",
+                  "Ports": {
+                    "DNS": 8600,
+                    "HTTP": 8500,
+                    "RPC": 8400,
+                    "SerfLan": 8301,
+                    "SerfWan": 8302,
+                    "Server": 8300
+                  },
+                  "LeaveOnTerm": false,
+                  "SkipLeaveOnInt": false,
+                  "StatsiteAddr": "",
+                  "Protocol": 1,
+                  "EnableDebug": false,
+                  "VerifyIncoming": false,
+                  "VerifyOutgoing": false,
+                  "CAFile": "",
+                  "CertFile": "",
+                  "KeyFile": "",
+                  "StartJoin": [],
+                  "UiDir": "",
+                  "PidFile": "",
+                  "EnableSyslog": false,
+                  "RejoinAfterLeave": false
+                },
+                "Member": {
+                  "Name": "foobar",
+                  "Addr": "10.1.10.12",
+                  "Port": 8301,
+                  "Tags": {
+                    "bootstrap": "1",
+                    "dc": "dc1",
+                    "port": "8300",
+                    "role": "consul",
+                    "vsn": "1",
+                    "vsn_max": "1",
+                    "vsn_min": "1"
+                  },
+                  "Status": 1,
+                  "ProtocolMin": 1,
+                  "ProtocolMax": 2,
+                  "ProtocolCur": 2,
+                  "DelegateMin": 2,
+                  "DelegateMax": 4,
+                  "DelegateCur": 4
+                }
+              }
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/agent/join/{address}": {
+      "get": {
+        "description": "This endpoint is used to instruct the agent to attempt to connect to a given\naddress. For agents running in server mode, providing `wan=1` causes the agent\nto attempt to join using the WAN pool.",
+        "summary": "Trigger local agent to join a node",
+        "tags": [
+          "Agent control"
+        ],
+        "operationId": "V1AgentJoinByAddressGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "address of node to join"
+          },
+          {
+            "name": "wan",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "`1` joins the WAN instead of the LAN pool"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object"
+            },
+            "examples": {}
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/agent/force-leave/{node}": {
+      "get": {
+        "description": "This endpoint is used to instructs the agent to force a node into the left\nstate.  If a node fails unexpectedly, then it will be in a \"failed\" state.  Once\nin this state, Consul will attempt to reconnect, and additionally the services\nand checks belonging to that node will not be cleaned up. Forcing a node into\nthe left state allows its old entries to be removed.",
+        "summary": "Force remove node",
+        "tags": [
+          "Agent control"
+        ],
+        "operationId": "V1AgentForceLeaveByNodeGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "node",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "the node to remove"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object"
+            },
+            "examples": {}
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/agent/check/register": {
+      "put": {
+        "description": "The register endpoint is used to add a new check to the local agent.  There is\nmore documentation on checks [here](/docs/agent/checks.html). Checks are either\na script or TTL type. The agent is responsible for managing the status of the\ncheck and keeping the Catalog in sync.\nThe `Name` field is mandatory, as is either `Script` and `Interval` or `TTL`.\nOnly one of `Script` and `Interval` or `TTL` should be provided. If an `ID` is\nnot provided, it is set to `Name`. You cannot have duplicate `ID` entries per\nagent, so it may be necessary to provide an `ID`. The `Notes` field is not used\nby Consul, and is meant to be human readable.\nIf a `Script` is provided, the check type is a script, and Consul will evaluate\nthe script every `Interval` to update the status. If a `TTL` type is used, then\nthe TTL update APIs must be used to periodically update the state of the check.",
+        "summary": "Register a new local check",
+        "tags": [
+          "Agent control"
+        ],
+        "operationId": "V1AgentCheckRegisterPut",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/RegisterANewLocalCheckRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "x-unitTests": [
+          {
+            "request": {
+              "method": "PUT",
+              "uri": "/agent/check/register",
+              "headers": {
+                "Content-Type": "application/json"
+              },
+              "body": "{    \"ID\": \"mem\",    \"Name\": \"Memory utilization\",    \"Notes\": \"Ensure we don't oversubscribe memory\",    \"Script\": \"/usr/local/bin/check_mem.py\",    \"Interval\": \"10s\",    \"TTL\": \"15s\"}"
+            },
+            "expectedResponse": {
+              "x-allowExtraHeaders": true,
+              "x-bodyMatchMode": "NONE",
+              "x-arrayOrderedMatching": false,
+              "x-arrayCheckCount": false,
+              "x-matchResponseSchema": true,
+              "headers": {}
+            },
+            "x-testShouldPass": true,
+            "x-testEnabled": true,
+            "x-testName": "Register a new local check1",
+            "x-testDescription": "The register endpoint is used to add a new check to the local agent.  There is\nmore documentation on checks [here](/docs/agent/checks.html). Checks are either\na script or TTL type. The agent is responsible for managing the status of the\ncheck and keeping the Catalog in sync.\nThe `Name` field is mandatory, as is either `Script` and `Interval` or `TTL`.\nOnly one of `Script` and `Interval` or `TTL` should be provided. If an `ID` is\nnot provided, it is set to `Name`. You cannot have duplicate `ID` entries per\nagent, so it may be necessary to provide an `ID`. The `Notes` field is not used\nby Consul, and is meant to be human readable.\nIf a `Script` is provided, the check type is a script, and Consul will evaluate\nthe script every `Interval` to update the status. If a `TTL` type is used, then\nthe TTL update APIs must be used to periodically update the state of the check."
+          }
+        ],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/agent/check/deregister/{checkID}": {
+      "get": {
+        "description": "Remove a check from the local agent.  The agent will take care of deregistering\nthe check with the Catalog.",
+        "summary": "Deregister a local check",
+        "tags": [
+          "Agent control"
+        ],
+        "operationId": "V1AgentCheckDeregisterByCheckIDGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "checkID",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": ""
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object"
+            },
+            "examples": {}
+          }
+        },
+        "x-unitTests": [
+          {
+            "request": {
+              "method": "GET",
+              "uri": "/agent/check/deregister/{checkID}"
+            },
+            "expectedResponse": {
+              "x-allowExtraHeaders": true,
+              "x-bodyMatchMode": "NONE",
+              "x-arrayOrderedMatching": false,
+              "x-arrayCheckCount": false,
+              "x-matchResponseSchema": true,
+              "headers": {}
+            },
+            "x-testShouldPass": true,
+            "x-testEnabled": true,
+            "x-testName": "Deregister a local check1",
+            "x-testDescription": "Remove a check from the local agent.  The agent will take care of deregistering\nthe check with the Catalog."
+          }
+        ],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/agent/check/{state}/{checkID}": {
+      "get": {
+        "description": "This endpoint is used with [TTL type](/docs/agent/checks.html) checks. Sets the\ncheck status and resets the TTL clock.\n* state `pass` sets `checkID` to status `passing`\n* state `warn` sets `checkID` to status `warning`\n* state `fail` sets `checkID` to status `critical`",
+        "summary": "Set status of local test",
+        "tags": [
+          "Agent control"
+        ],
+        "operationId": "V1AgentCheckByStateAndCheckIDGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "state",
+            "in": "path",
+            "required": true,
+            "enum": [
+              "pass",
+              "warn",
+              "fail"
+            ],
+            "type": "string",
+            "description": "the state of the check"
+          },
+          {
+            "name": "checkID",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "the ID of the check"
+          },
+          {
+            "name": "note",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "check output\nShould be human-readable for operators"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object"
+            },
+            "examples": {}
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/agent/service/register": {
+      "put": {
+        "description": "The register endpoint is used to add a new service to the local agent.  There is\nmore documentation on services [here](/docs/agent/services.html). Services may\nalso provide a health check. The agent is responsible for managing the status of\nthe check and keeping the Catalog in sync.\nThe `Name` field is mandatory.  If an `ID` is not provided, it is set to `Name`.\nYou cannot have duplicate `ID` entries per agent, so it may be necessary to\nprovide an `ID`. `Tags`, `Port` and `Check` are optional. If `Check` is\nprovided, only one of `Script` and `Interval` or `TTL` should be provided. There\nis more information about checks [here](/docs/agent/checks.html).\nThe created check will be named `service:<ServiceId>`.",
+        "summary": "Registers a new local service",
+        "tags": [
+          "Agent control"
+        ],
+        "operationId": "V1AgentServiceRegisterPut",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/RegistersANewLocalServiceRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "x-unitTests": [
+          {
+            "request": {
+              "method": "PUT",
+              "uri": "/agent/service/register",
+              "headers": {
+                "Content-Type": "application/json"
+              },
+              "body": "{    \"ID\": \"redis1\",    \"Name\": \"redis\",    \"Tags\": [ \"master\", \"v1\" ],    \"Port\": 8000,    \"Check\": {        \"Script\": \"/usr/local/bin/check_redis.py\",        \"Interval\": \"10s\",        \"TTL\": \"15s\"    }}"
+            },
+            "expectedResponse": {
+              "x-allowExtraHeaders": true,
+              "x-bodyMatchMode": "NONE",
+              "x-arrayOrderedMatching": false,
+              "x-arrayCheckCount": false,
+              "x-matchResponseSchema": true,
+              "headers": {}
+            },
+            "x-testShouldPass": true,
+            "x-testEnabled": true,
+            "x-testName": "Registers a new local service1",
+            "x-testDescription": "The register endpoint is used to add a new service to the local agent.  There is\nmore documentation on services [here](/docs/agent/services.html). Services may\nalso provide a health check. The agent is responsible for managing the status of\nthe check and keeping the Catalog in sync.\nThe `Name` field is mandatory.  If an `ID` is not provided, it is set to `Name`.\nYou cannot have duplicate `ID` entries per agent, so it may be necessary to\nprovide an `ID`. `Tags`, `Port` and `Check` are optional. If `Check` is\nprovided, only one of `Script` and `Interval` or `TTL` should be provided. There\nis more information about checks [here](/docs/agent/checks.html).\nThe created check will be named `service:<ServiceId>`."
+          }
+        ],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/agent/service/deregister/{serviceID}": {
+      "get": {
+        "description": "Removes a service from the local agent. The agent will take care of\nderegistering the service with the Catalog. If there is an associated check,\nthat is also deregistered.",
+        "summary": "Deregister a local service",
+        "tags": [
+          "Agent control"
+        ],
+        "operationId": "V1AgentServiceDeregisterByServiceIDGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "serviceID",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID of service to deregister"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object"
+            },
+            "examples": {}
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/catalog/register": {
+      "put": {
+        "description": "Low level mechanism for directly registering or updating entries in the catalog.\nIt is usually recommended to use the agent local endpoints, as they are simpler\nand perform anti-entropy.\nThe behavior of the endpoint depends on what keys are provided.\nThe endpoint requires `Node` and `Address` to be provided, while `Datacenter`\nwill be defaulted to match that of the agent. If only those are provided, the\nendpoint will register the node with the catalog.\nIf the `Service` key is provided, then the service will also be registered. If\n`ID` is not provided, it will be defaulted to `Service`. It is mandated that the\n`ID` be node-unique. Both `Tags` and `Port` can be omitted.\nIf the `Check` key is provided, then a health check will also be registered. It\nis important to remember that this register API is very low level. This\nmanipulates the health check entry, but does not setup a script or TTL to\nactually update the status. For that behavior, an agent local check should be\nsetup.\nThe `CheckID` can be omitted, and will default to the `Name`. Like before, the\n`CheckID` must be node-unique. `Notes` is an opaque field that is meant to hold\nhuman readable text. If a `ServiceID` is provided that matches the `ID` of a service\non that node, then the check is treated as a service level health check, instead\nof a node level health check. Lastly, the `Status` must be one of `unknown`,\n`passing`, `warning`, or `critical`. The `unknown` status is used to indicate\nthat the initial check has not been performed yet.\nIt is important to note that `Check` does not have to be provided with `Service`\nand visa-versa. They can be provided or omitted at will.",
+        "summary": "Registers a new node, service, or check",
+        "tags": [
+          "Catalog"
+        ],
+        "operationId": "V1CatalogRegisterPut",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/RegistersANewNode,Service,OrCheckRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "x-unitTests": [
+          {
+            "request": {
+              "method": "PUT",
+              "uri": "/catalog/register",
+              "headers": {
+                "Content-Type": "application/json"
+              },
+              "body": "{    \"Datacenter\": \"dc1\",    \"Node\": \"foobar\",    \"Address\": \"192.168.10.10\",    \"Service\": {        \"ID\": \"redis1\",        \"Service\": \"redis\",        \"Tags\": [            \"master\",            \"v1\"        ],        \"Port\": 8000    },    \"Check\": {        \"Node\": \"foobar\",        \"CheckID\": \"service:redis1\",        \"Name\": \"Redis health check\",        \"Notes\": \"Script based health check\",        \"Status\": \"passing\",        \"ServiceID\": \"redis1\"    }}"
+            },
+            "expectedResponse": {
+              "x-allowExtraHeaders": true,
+              "x-bodyMatchMode": "NONE",
+              "x-arrayOrderedMatching": false,
+              "x-arrayCheckCount": false,
+              "x-matchResponseSchema": true,
+              "headers": {}
+            },
+            "x-testShouldPass": true,
+            "x-testEnabled": true,
+            "x-testName": "Registers a new node, service, or check1",
+            "x-testDescription": "Low level mechanism for directly registering or updating entries in the catalog.\nIt is usually recommended to use the agent local endpoints, as they are simpler\nand perform anti-entropy.\nThe behavior of the endpoint depends on what keys are provided.\nThe endpoint requires `Node` and `Address` to be provided, while `Datacenter`\nwill be defaulted to match that of the agent. If only those are provided, the\nendpoint will register the node with the catalog.\nIf the `Service` key is provided, then the service will also be registered. If\n`ID` is not provided, it will be defaulted to `Service`. It is mandated that the\n`ID` be node-unique. Both `Tags` and `Port` can be omitted.\nIf the `Check` key is provided, then a health check will also be registered. It\nis important to remember that this register API is very low level. This\nmanipulates the health check entry, but does not setup a script or TTL to\nactually update the status. For that behavior, an agent local check should be\nsetup.\nThe `CheckID` can be omitted, and will default to the `Name`. Like before, the\n`CheckID` must be node-unique. `Notes` is an opaque field that is meant to hold\nhuman readable text. If a `ServiceID` is provided that matches the `ID` of a service\non that node, then the check is treated as a service level health check, instead\nof a node level health check. Lastly, the `Status` must be one of `unknown`,\n`passing`, `warning`, or `critical`. The `unknown` status is used to indicate\nthat the initial check has not been performed yet.\nIt is important to note that `Check` does not have to be provided with `Service`\nand visa-versa. They can be provided or omitted at will."
+          }
+        ],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/catalog/deregister": {
+      "put": {
+        "description": "Low level mechanism for directly removing entries in the catalog. It is usually\nrecommended to use the agent local endpoints, as they are simpler and perform\nanti-entropy.",
+        "summary": "Deregisters a node, service, or check",
+        "tags": [
+          "Catalog"
+        ],
+        "operationId": "V1CatalogDeregisterPut",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/DeregistersANode,Service,OrCheckRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "x-unitTests": [
+          {
+            "request": {
+              "method": "PUT",
+              "uri": "/catalog/deregister",
+              "headers": {
+                "Content-Type": "application/json"
+              },
+              "body": "{    \"Datacenter\": \"dc1\",    \"Node\": \"foobar\"}"
+            },
+            "expectedResponse": {
+              "x-allowExtraHeaders": true,
+              "x-bodyMatchMode": "NONE",
+              "x-arrayOrderedMatching": false,
+              "x-arrayCheckCount": false,
+              "x-matchResponseSchema": true,
+              "headers": {}
+            },
+            "x-testShouldPass": true,
+            "x-testEnabled": true,
+            "x-testName": "Deregisters a node, service, or check1",
+            "x-testDescription": "Low level mechanism for directly removing entries in the catalog. It is usually\nrecommended to use the agent local endpoints, as they are simpler and perform\nanti-entropy."
+          }
+        ],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/catalog/datacenters": {
+      "get": {
+        "description": "Return all the datacenters that are known by the Consul server.\nThis endpoint does not require a cluster leader, and as such will succeed even\nduring an availability outage. It can thus be a simple check to see if any\nConsul servers are routable.",
+        "summary": "Lists known datacenters",
+        "tags": [
+          "Catalog"
+        ],
+        "operationId": "V1CatalogDatacentersGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "examples": {
+              "text/plain": [
+                "dc1",
+                "dc2"
+              ]
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/catalog/nodes": {
+      "get": {
+        "description": "Returns the nodes known about in a given datacenter.\nSupports blocking queries and all consistency modes.",
+        "summary": "Lists nodes in a given DC",
+        "tags": [
+          "Catalog"
+        ],
+        "operationId": "V1CatalogNodesGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "dc",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "datacenter to query; defaults to agent's datacenter"
+          },
+          {
+            "name": "index",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "initiates a blocking query"
+          },
+          {
+            "name": "wait",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "limits how long query will potentially block for; use with `index`"
+          },
+          {
+            "name": "consistent",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "consistent read mode"
+          },
+          {
+            "name": "stale",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "stale read mode"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ListsNodesInAGivenDcResponse"
+              }
+            },
+            "examples": {
+              "application/json": [
+                {
+                  "Node": "baz",
+                  "Address": "10.1.10.11"
+                },
+                {
+                  "Node": "foobar",
+                  "Address": "10.1.10.12"
+                }
+              ]
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/catalog/services": {
+      "get": {
+        "description": "Returns the services known about in a given datacenter.\nThe main object keys are the service names, while the array provides all the\nknown tags for a given service.\nSupports blocking queries and all consistency modes.",
+        "summary": "Lists services in a given DC",
+        "tags": [
+          "Catalog"
+        ],
+        "operationId": "V1CatalogServicesGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "dc",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "datacenter to query; defaults to agent's datacenter"
+          },
+          {
+            "name": "index",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "initiates a blocking query"
+          },
+          {
+            "name": "wait",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "limits how long query will potentially block for; use with `index`"
+          },
+          {
+            "name": "consistent",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "consistent read mode"
+          },
+          {
+            "name": "stale",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "stale read mode"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ListsServicesInAGivenDcResponse"
+            },
+            "examples": {
+              "application/json": {
+                "consul": [],
+                "redis": [],
+                "postgresql": [
+                  "master",
+                  "slave"
+                ]
+              }
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/catalog/service/{service}": {
+      "get": {
+        "description": "Returns the nodes providing a service in a given datacenter.  By default all\nnodes in that service are returned. However, the list can be filtered by tag\nusing the `tag` query parameter.\nSupports blocking queries and all consistency modes.",
+        "summary": "Lists the nodes in a given service",
+        "tags": [
+          "Catalog"
+        ],
+        "operationId": "V1CatalogServiceByServiceGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "service to retrieve"
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "tag to filter on"
+          },
+          {
+            "name": "dc",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "datacenter to query; defaults to agent's datacenter"
+          },
+          {
+            "name": "index",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "initiates a blocking query"
+          },
+          {
+            "name": "wait",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "limits how long query will potentially block for; use with `index`"
+          },
+          {
+            "name": "consistent",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "consistent read mode"
+          },
+          {
+            "name": "stale",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "stale read mode"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ListsTheNodesInAGivenServiceResponse"
+              }
+            },
+            "examples": {
+              "application/json": [
+                {
+                  "Node": "foobar",
+                  "Address": "10.1.10.12",
+                  "ServiceID": "redis",
+                  "ServiceName": "redis",
+                  "ServiceTags": "null",
+                  "ServicePort": 8000
+                }
+              ]
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/catalog/node/{node}": {
+      "get": {
+        "description": "Returns the node-provided services.\nSupports blocking queries and all consistency modes.",
+        "summary": "Lists the services provided by a node",
+        "tags": [
+          "Catalog"
+        ],
+        "operationId": "V1CatalogNodeByNodeGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "node",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "node to retrieve"
+          },
+          {
+            "name": "dc",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "datacenter to query; defaults to agent's datacenter"
+          },
+          {
+            "name": "index",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "initiates a blocking query"
+          },
+          {
+            "name": "wait",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "limits how long query will potentially block for; use with `index`"
+          },
+          {
+            "name": "consistent",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "consistent read mode"
+          },
+          {
+            "name": "stale",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "stale read mode"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ListsTheServicesProvidedByANodeResponse"
+            },
+            "examples": {
+              "application/json": {
+                "Node": {
+                  "Node": "foobar",
+                  "Address": "10.1.10.12"
+                },
+                "Services": {
+                  "consul": {
+                    "ID": "consul",
+                    "Service": "consul",
+                    "Tags": null,
+                    "Port": 8300
+                  },
+                  "redis": {
+                    "ID": "redis",
+                    "Service": "redis",
+                    "Tags": [
+                      "v1"
+                    ],
+                    "Port": 8000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/health/node/{node}": {
+      "get": {
+        "description": "Returns the node specific checks known.\nIn the sample response body, we can see there is a system level check (no\nassociated `ServiceID`, as well as a service check for Redis). The \"serfHealth\"\ncheck is special, in that all nodes automatically have this check. When a node\njoins the Consul cluster, it is part of a distributed failure detection provided\nby Serf. If a node fails, it is detected and the status is automatically changed\nto \"critical\".",
+        "summary": "Returns the health info of a node",
+        "tags": [
+          "Health"
+        ],
+        "operationId": "V1HealthNodeByNodeGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "node",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "dc",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "datacenter to query; defaults to agent's datacenter"
+          },
+          {
+            "name": "index",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "initiates a blocking query"
+          },
+          {
+            "name": "wait",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "limits how long query will potentially block for; use with `index`"
+          },
+          {
+            "name": "consistent",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "consistent read mode"
+          },
+          {
+            "name": "stale",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "stale read mode"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ReturnsTheHealthInfoOfANodeResponse"
+              }
+            },
+            "examples": {
+              "application/json": [
+                {
+                  "Node": "foobar",
+                  "CheckID": "serfHealth",
+                  "Name": "Serf Health Status",
+                  "Status": "passing",
+                  "Notes": "",
+                  "Output": "",
+                  "ServiceID": "",
+                  "ServiceName": ""
+                },
+                {
+                  "Node": "foobar",
+                  "CheckID": "service:redis",
+                  "Name": "Service 'redis' check",
+                  "Status": "passing",
+                  "Notes": "",
+                  "Output": "",
+                  "ServiceID": "redis",
+                  "ServiceName": "redis"
+                }
+              ]
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/health/checks/{service}": {
+      "get": {
+        "description": "Returns the checks associated with a service.",
+        "summary": "Returns the checks of a service",
+        "tags": [
+          "Health"
+        ],
+        "operationId": "V1HealthChecksByServiceGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "dc",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "datacenter to query; defaults to agent's datacenter"
+          },
+          {
+            "name": "index",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "initiates a blocking query"
+          },
+          {
+            "name": "wait",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "limits how long query will potentially block for; use with `index`"
+          },
+          {
+            "name": "consistent",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "consistent read mode"
+          },
+          {
+            "name": "stale",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "stale read mode"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ReturnsTheChecksOfAServiceResponse"
+              }
+            },
+            "examples": {
+              "application/json": [
+                {
+                  "Node": "foobar",
+                  "CheckID": "service:redis",
+                  "Name": "Service 'redis' check",
+                  "Status": "passing",
+                  "Notes": "",
+                  "Output": "",
+                  "ServiceID": "redis",
+                  "ServiceName": "redis"
+                }
+              ]
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/health/service/{service}": {
+      "get": {
+        "description": "Returns the service nodes providing a given service.\nBy default all nodes in that service are returned.  However, the list can be\nfiltered by tag using the `tag` query parameter.\nThis is very similar to the `/catalog/service endpoint`, however this\nendpoint automatically returns the status of the associated health check, as\nwell as any system level health checks. This allows a client to avoid sending\ntraffic to nodes failing health tests, or who are reporting warnings.\nProviding the `passing` query parameter will filter results to only nodes with\nall checks in the passing state. This can be used to avoid some filtering logic\non the client side. (Added in Consul 0.2)\nUsers can also built in support for dynamic load balancing and other features by\nincorporating the use of health checks.",
+        "summary": "Returns the nodes and health info of a service",
+        "tags": [
+          "Health"
+        ],
+        "operationId": "V1HealthServiceByServiceGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "dc",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "datacenter to query; defaults to agent's datacenter"
+          },
+          {
+            "name": "index",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "initiates a blocking query"
+          },
+          {
+            "name": "wait",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "limits how long query will potentially block for; use with `index`"
+          },
+          {
+            "name": "consistent",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "consistent read mode"
+          },
+          {
+            "name": "stale",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "stale read mode"
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "tag to filter on"
+          },
+          {
+            "name": "passing",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "if provided, return only passing nodes"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ReturnsTheNodesAndHealthInfoOfAServiceResponse"
+              }
+            },
+            "examples": {
+              "application/json": [
+                {
+                  "Node": {
+                    "Node": "foobar",
+                    "Address": "10.1.10.12"
+                  },
+                  "Service": {
+                    "ID": "redis",
+                    "Service": "redis",
+                    "Tags": null,
+                    "Port": 8000
+                  },
+                  "Checks": [
+                    {
+                      "Node": "foobar",
+                      "CheckID": "service:redis",
+                      "Name": "Service 'redis' check",
+                      "Status": "passing",
+                      "Notes": "",
+                      "Output": "",
+                      "ServiceID": "redis",
+                      "ServiceName": "redis"
+                    },
+                    {
+                      "Node": "foobar",
+                      "CheckID": "serfHealth",
+                      "Name": "Serf Health Status",
+                      "Status": "passing",
+                      "Notes": "",
+                      "Output": "",
+                      "ServiceID": "",
+                      "ServiceName": ""
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/health/state/{state}": {
+      "get": {
+        "description": "Returns the checks in a specific state.\nThe state being queried must be provided after the slash. The supported states\nare \"any\", \"unknown\", \"passing\", \"warning\", or \"critical\". The \"any\" state is a\nwildcard that can be used to return all the checks.",
+        "summary": "Returns the checks in a given state",
+        "tags": [
+          "Health"
+        ],
+        "operationId": "V1HealthStateByStateGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "state",
+            "in": "path",
+            "required": true,
+            "enum": [
+              "any",
+              "unknown",
+              "passing",
+              "warning",
+              "critical"
+            ],
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "dc",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "datacenter to query; defaults to agent's datacenter"
+          },
+          {
+            "name": "index",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "initiates a blocking query"
+          },
+          {
+            "name": "wait",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "limits how long query will potentially block for; use with `index`"
+          },
+          {
+            "name": "consistent",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "consistent read mode"
+          },
+          {
+            "name": "stale",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "stale read mode"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ReturnsTheChecksInAGivenStateResponse"
+              }
+            },
+            "examples": {
+              "application/json": [
+                {
+                  "Node": "foobar",
+                  "CheckID": "serfHealth",
+                  "Name": "Serf Health Status",
+                  "Status": "passing",
+                  "Notes": "",
+                  "Output": "",
+                  "ServiceID": "",
+                  "ServiceName": ""
+                },
+                {
+                  "Node": "foobar",
+                  "CheckID": "service:redis",
+                  "Name": "Service 'redis' check",
+                  "Status": "passing",
+                  "Notes": "",
+                  "Output": "",
+                  "ServiceID": "redis",
+                  "ServiceName": "redis"
+                }
+              ]
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/session/create": {
+      "put": {
+        "description": "Initialize a new session. There is more documentation on sessions\n[here](/docs/internals/sessions.html).  Sessions must be associated with a node,\nand optionally any number of checks. By default, the agent uses its own node\nname, and provides the \"serfHealth\" check, along with a 15 second lock delay.\nBy default, the agent's local datacenter is used, but another datacenter can be\nspecified using the `dc` query parameter. It is not recommended to use cross-\nregion sessions.\nNone of the fields are mandatory, and in fact no request body is required if the\ndefaults are to be used. The `LockDelay` field can be specified as a duration\nstring using a \"s\" suffix for seconds. It can also be a numeric value. Small\nvalues are treated as seconds, and otherwise it is provided with nanosecond\ngranularity.\nThe `Node` field must refer to a node that is already registered. By default,\nthe agent will use its own name. The `Name` field can be used to provide a human\nreadable name for the Session. Lastly, the `Checks` field is used to provide a\nlist of associated health checks. By default the \"serfHealth\" check is provided.\nIt is highly recommended that if you override this list, you include that check.\nThe response contains the ID of the newly-created session.",
+        "summary": "Creates a new session",
+        "tags": [
+          "Session"
+        ],
+        "operationId": "V1SessionCreatePut",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/CreatesANewSessionRequest"
+            }
+          },
+          {
+            "name": "dc",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "datacenter to query; defaults to agent's datacenter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/CreatesANewSessionResponse"
+            },
+            "examples": {
+              "application/json": {
+                "ID": "adf4238a-882b-9ddc-4a9d-5b6758e4159e"
+              }
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/session/destroy/{session}": {
+      "put": {
+        "description": "Destroys the given session.",
+        "summary": "Destroys a given session",
+        "tags": [
+          "Session"
+        ],
+        "operationId": "V1SessionDestroyBySessionPut",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "session",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "session ID to destroy"
+          },
+          {
+            "name": "dc",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "datacenter to query; defaults to agent's datacenter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "text/plain": "true"
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/session/info/{session}": {
+      "get": {
+        "description": "Returns the session information by ID.\nIf the session is not found, `null` is returned instead of a JSON list.\nThis endpoint supports blocking queries and all consistency modes.",
+        "summary": "Queries a given session",
+        "tags": [
+          "Session"
+        ],
+        "operationId": "V1SessionInfoBySessionGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "session",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "session ID to query"
+          },
+          {
+            "name": "dc",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "datacenter to query; defaults to agent's datacenter"
+          },
+          {
+            "name": "index",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "initiates a blocking query"
+          },
+          {
+            "name": "wait",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "limits how long query will potentially block for; use with `index`"
+          },
+          {
+            "name": "consistent",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "consistent read mode"
+          },
+          {
+            "name": "stale",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "stale read mode"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/QueriesAGivenSessionResponse"
+              }
+            },
+            "examples": {
+              "application/json": [
+                {
+                  "LockDelay": 15000000000.0,
+                  "Checks": [
+                    "serfHealth"
+                  ],
+                  "Node": "foobar",
+                  "ID": "adf4238a-882b-9ddc-4a9d-5b6758e4159e",
+                  "CreateIndex": 1086449
+                }
+              ]
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/session/node/{node}": {
+      "get": {
+        "description": "Returns the active sessions for a given node.\nThis endpoint supports blocking queries and all consistency modes.",
+        "summary": "Lists sessions belonging to a node",
+        "tags": [
+          "Session"
+        ],
+        "operationId": "V1SessionNodeByNodeGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "node",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "dc",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "datacenter to query; defaults to agent's datacenter"
+          },
+          {
+            "name": "index",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "initiates a blocking query"
+          },
+          {
+            "name": "wait",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "limits how long query will potentially block for; use with `index`"
+          },
+          {
+            "name": "consistent",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "consistent read mode"
+          },
+          {
+            "name": "stale",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "stale read mode"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ListsSessionsBelongingToANodeResponse"
+              }
+            },
+            "examples": {}
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/session/list": {
+      "get": {
+        "description": "Returns the active sessions for a given datacenter.\nThis endpoint supports blocking queries and all consistency modes.",
+        "summary": "Lists all the active sessions",
+        "tags": [
+          "Session"
+        ],
+        "operationId": "V1SessionListGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "dc",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "datacenter to query; defaults to agent's datacenter"
+          },
+          {
+            "name": "index",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "initiates a blocking query"
+          },
+          {
+            "name": "wait",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "limits how long query will potentially block for; use with `index`"
+          },
+          {
+            "name": "consistent",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "consistent read mode"
+          },
+          {
+            "name": "stale",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "stale read mode"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ListsAllTheActiveSessionsResponse"
+              }
+            },
+            "examples": {}
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/acl/create": {
+      "put": {
+        "description": "The create endpoint is used to make a new token. A token has a name, type, and a\nset of ACL rules. The name is opaque to Consul, and type is either \"client\" or\n\"management\". A management token is effectively like a root user, and has the\nability to perform any action including creating, modifying, and deleting ACLs.\nA client token can only perform actions as permitted by the rules associated,\nand may never manage ACLs. This means the request to this endpoint must be made\nwith a management token.\nNone of the fields are mandatory, and in fact no body needs to be provided if\nthe defaults are to be used. The `Name` and `Rules` default to being blank, and\nthe `Type` defaults to \"client\". The format of `Rules` is [documented\nhere](/docs/internals/acl.html).\nThe response contains the ID of the newly-created ACL token.",
+        "summary": "Creates a new token with policy",
+        "tags": [
+          "ACL"
+        ],
+        "operationId": "V1AclCreatePut",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "description": "ACL token"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/CreatesANewTokenWithPolicyRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/CreatesANewTokenWithPolicyResponse"
+            },
+            "examples": {
+              "application/json": {
+                "ID": "adf4238a-882b-9ddc-4a9d-5b6758e4159e"
+              }
+            }
+          },
+          "401": {
+            "description": "ACL support disabled",
+            "schema": {}
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/acl/update": {
+      "put": {
+        "description": "The update endpoint is used to modify the policy for a given ACL token. It is\nvery similar to the create endpoint, however instead of generating a new token\nID, the ID field must be provided. Requests to this endpoint must be made with a\nmanagement token.\nOnly the `ID` field is mandatory, the other fields provide defaults. The `Name`\nand `Rules` default to being blank, and the `Type` defaults to \"client\". The\nformat of Rules is The format of `Rules` is [documented\nhere](/docs/internals/acl.html).",
+        "summary": "Update the policy of a token",
+        "tags": [
+          "ACL"
+        ],
+        "operationId": "V1AclUpdatePut",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "description": "ACL token"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/UpdateThePolicyOfATokenRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/acl/destroy/{id}": {
+      "put": {
+        "description": "Destroys the given ACL token.  Requests to the endpoint must be made with a\nmanagement token.",
+        "summary": "Destroys a given token",
+        "tags": [
+          "ACL"
+        ],
+        "operationId": "V1AclDestroyByIdPut",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ACL token id to destroy"
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "description": "ACL token"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/acl/info/{id}": {
+      "get": {
+        "description": "Returns the token information by ID.\nIf the session is not found, `null` is returned instead of a JSON list.",
+        "summary": "Queries the policy of a given token",
+        "tags": [
+          "ACL"
+        ],
+        "operationId": "V1AclInfoByIdGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ACL token id to retrieve"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/QueriesThePolicyOfAGivenTokenResponse"
+              }
+            },
+            "examples": {
+              "application/json": [
+                {
+                  "CreateIndex": 3,
+                  "ModifyIndex": 3,
+                  "ID": "8f246b77-f3e1-ff88-5b48-8ec93abf3e05",
+                  "Name": "Client Token",
+                  "Type": "client",
+                  "Rules": "..."
+                }
+              ]
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/acl/clone/{id}": {
+      "get": {
+        "description": "Returns a token ID that is cloned from an existing token. This allows a token to\nserve as a template for others, making it simple to generate new tokens without\ncomplex rule management.  Requests to this endpoint require a management token.\nThe response contains the ID of the newly-created ACL token.",
+        "summary": "Creates a new token by cloning an existing token",
+        "tags": [
+          "ACL"
+        ],
+        "operationId": "V1AclCloneByIdGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Source ACL token id"
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "description": "ACL token"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/CreatesANewTokenByCloningAnExistingTokenResponse"
+            },
+            "examples": {
+              "application/json": {
+                "ID": "adf4238a-882b-9ddc-4a9d-5b6758e4159e"
+              }
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/acl/list": {
+      "get": {
+        "description": "Lists all the active ACL tokens. This is a privileged endpoint, and requires a\nmanagement token.",
+        "summary": "Lists all the active tokens",
+        "tags": [
+          "ACL"
+        ],
+        "operationId": "V1AclListGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "description": "ACL token"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ListsAllTheActiveTokensResponse"
+              }
+            },
+            "examples": {}
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/event/fire/{name}": {
+      "put": {
+        "description": "The fire endpoint is used to trigger a new user event. A user event needs a\n`name`, and optionally takes a number of parameters.\nThe endpoint takes an optional body. The body contents are opaque to Consul, and\nbecome the \"payload\" of the event. Any names starting with the \"_\" prefix should\nbe considered reserved, and for Consul's internal use.\nThe `node`, `service`, and `tag` query parameters may optionally be provided.\nThey respectively provide a regular expression to filter by node name, service,\nand service tags.\nThe response contains the ID of the newly-fired event.",
+        "summary": "Fires a new user event",
+        "tags": [
+          "Events"
+        ],
+        "operationId": "V1EventFireByNamePut",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "node",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "service",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": ""
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": ""
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/FiresANewUserEventResponse"
+            },
+            "examples": {
+              "application/json": {
+                "ID": "b54fe110-7af5-cafc-d1fb-afc8ba432b1c",
+                "Name": "deploy",
+                "Payload": "null",
+                "NodeFilter": "",
+                "ServiceFilter": "",
+                "TagFilter": "",
+                "Version": 1,
+                "LTime": 0
+              }
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/event/list": {
+      "get": {
+        "description": "This endpoint is hit with a GET and returns the most recent events known by the\nagent. As a consequence of how the [event command](/docs/commands/event.html)\nworks, each agent may have a different view of the events. Events are broadcast\nusing the [gossip protocol](/docs/internals/gossip.html), which means they have\nno total ordering, nor do they make a promise of delivery.\nAdditionally, each node applies the node, service and tag filters locally before\nstoring the event. This means the events at each agent may be different\ndepending on their configuration.\nThis endpoint does allow for filtering on events by name by providing\nthe `name` query parameter.\nLastly, to support [watches](/docs/agent/watches.html), this endpoint supports\nblocking queries. However, the semantics of this endpoint are slightly\ndifferent. Most blocking queries provide a monotonic index, and block until a\nnewer index is available. This can be supported as a consequence of the total\nordering of the [consensus protocol](/docs/internals/consensus.html). With\ngossip, there is no ordering, and instead `X-Consul-Index` maps to the newest\nevent that matches the query.\nIn practice, this means the index is only useful when used against a single\nagent, and has no meaning globally. Because Consul defines the index as being\nopaque, clients should not be expecting a natural ordering either.\nLastly, agents only buffer the most recent entries. The number of entries should\nnot be depended upon, but currently defaults to 256. This value could change in\nthe future. The buffer should be large enough for most clients and watches.",
+        "summary": "Lists the most recent events an agent has seen.",
+        "tags": [
+          "Events"
+        ],
+        "operationId": "V1EventListGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "event to return"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ListsTheMostRecentEventsAnAgentHasSeen.Response"
+              }
+            },
+            "examples": {}
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/status/leader": {
+      "get": {
+        "description": "Returns the Raft leader for the datacenter the agent is running in.",
+        "summary": "Retrieve Raft leader",
+        "tags": [
+          "Status"
+        ],
+        "operationId": "V1StatusLeaderGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "text/plain": "\"10.1.10.12:8300\""
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    },
+    "/status/peers": {
+      "get": {
+        "description": "Returns the Raft peers for the datacenter the agent is running in.",
+        "summary": "Returns Raft peer set",
+        "tags": [
+          "Status"
+        ],
+        "operationId": "V1StatusPeersGet",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "examples": {
+              "text/plain": [
+                "10.1.10.12:8300",
+                "10.1.10.11:8300",
+                "10.1.10.10:8300"
+              ]
+            }
+          }
+        },
+        "x-unitTests": [],
+        "x-operation-settings": {
+          "CollectParameters": false,
+          "AllowDynamicQueryParameters": false,
+          "AllowDynamicFormParameters": false,
+          "IsMultiContentStreaming": false
+        }
+      }
+    }
+  },
+  "definitions": {
+    "RetrieveKeyResponse": {
+      "title": "Retrieve key response",
+      "example": {
+        "CreateIndex": 100,
+        "ModifyIndex": 200,
+        "LockIndex": 200,
+        "Key": "zip",
+        "Flags": 0,
+        "Value": "dGVzdA==",
+        "Session": "adf4238a-882b-9ddc-4a9d-5b6758e4159e"
+      },
+      "type": "object",
+      "properties": {
+        "CreateIndex": {
+          "description": "",
+          "example": 100,
+          "type": "integer",
+          "format": "int32"
+        },
+        "ModifyIndex": {
+          "description": "",
+          "example": 200,
+          "type": "integer",
+          "format": "int32"
+        },
+        "LockIndex": {
+          "description": "",
+          "example": 200,
+          "type": "integer",
+          "format": "int32"
+        },
+        "Key": {
+          "description": "",
+          "example": "zip",
+          "type": "string"
+        },
+        "Flags": {
+          "description": "",
+          "example": 0,
+          "type": "integer",
+          "format": "int32"
+        },
+        "Value": {
+          "description": "",
+          "example": "dGVzdA==",
+          "type": "string"
+        },
+        "Session": {
+          "description": "",
+          "example": "adf4238a-882b-9ddc-4a9d-5b6758e4159e",
+          "type": "string"
+        }
+      },
+      "required": [
+        "CreateIndex",
+        "ModifyIndex",
+        "LockIndex",
+        "Key",
+        "Flags",
+        "Value",
+        "Session"
+      ]
+    },
+    "ReturnTheChecksTheLocalAgentIsManagingResponse": {
+      "title": "Return the checks the local agent is managing response",
+      "example": {
+        "service:redis": {
+          "Node": "foobar",
+          "CheckID": "service:redis",
+          "Name": "Service 'redis' check",
+          "Status": "passing",
+          "Notes": "",
+          "Output": "",
+          "ServiceID": "redis",
+          "ServiceName": "redis"
+        }
+      },
+      "type": "object",
+      "properties": {
+        "service:redis": {
+          "description": "",
+          "example": {
+            "Node": "foobar",
+            "CheckID": "service:redis",
+            "Name": "Service 'redis' check",
+            "Status": "passing",
+            "Notes": "",
+            "Output": "",
+            "ServiceID": "redis",
+            "ServiceName": "redis"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "service:redis"
+      ]
+    },
+    "ReturnTheServicesLocalAgentIsManagingResponse": {
+      "title": "Return the services local agent is managing response",
+      "example": {
+        "redis": {
+          "ID": "redis",
+          "Service": "redis",
+          "Tags": null,
+          "Port": 8000
+        }
+      },
+      "type": "object",
+      "properties": {
+        "redis": {
+          "description": "",
+          "example": {
+            "ID": "redis",
+            "Service": "redis",
+            "Tags": null,
+            "Port": 8000
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "redis"
+      ]
+    },
+    "ReturnTheMembersAsSeenByTheLocalSerfAgentResponse": {
+      "title": "Return the members as seen by the local serf agent response",
+      "example": {
+        "Name": "foobar",
+        "Addr": "10.1.10.12",
+        "Port": 8301,
+        "Tags": {
+          "bootstrap": "1",
+          "dc": "dc1",
+          "port": "8300",
+          "role": "consul"
+        },
+        "Status": 1,
+        "ProtocolMin": 1,
+        "ProtocolMax": 2,
+        "ProtocolCur": 2,
+        "DelegateMin": 1,
+        "DelegateMax": 3,
+        "DelegateCur": 3
+      },
+      "type": "object",
+      "properties": {
+        "Name": {
+          "description": "",
+          "example": "foobar",
+          "type": "string"
+        },
+        "Addr": {
+          "description": "",
+          "example": "10.1.10.12",
+          "type": "string"
+        },
+        "Port": {
+          "description": "",
+          "example": 8301,
+          "type": "integer",
+          "format": "int32"
+        },
+        "Tags": {
+          "description": "",
+          "example": {
+            "bootstrap": "1",
+            "dc": "dc1",
+            "port": "8300",
+            "role": "consul"
+          },
+          "type": "object"
+        },
+        "Status": {
+          "description": "",
+          "example": 1,
+          "type": "integer",
+          "format": "int32"
+        },
+        "ProtocolMin": {
+          "description": "",
+          "example": 1,
+          "type": "integer",
+          "format": "int32"
+        },
+        "ProtocolMax": {
+          "description": "",
+          "example": 2,
+          "type": "integer",
+          "format": "int32"
+        },
+        "ProtocolCur": {
+          "description": "",
+          "example": 2,
+          "type": "integer",
+          "format": "int32"
+        },
+        "DelegateMin": {
+          "description": "",
+          "example": 1,
+          "type": "integer",
+          "format": "int32"
+        },
+        "DelegateMax": {
+          "description": "",
+          "example": 3,
+          "type": "integer",
+          "format": "int32"
+        },
+        "DelegateCur": {
+          "description": "",
+          "example": 3,
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "required": [
+        "Name",
+        "Addr",
+        "Port",
+        "Tags",
+        "Status",
+        "ProtocolMin",
+        "ProtocolMax",
+        "ProtocolCur",
+        "DelegateMin",
+        "DelegateMax",
+        "DelegateCur"
+      ]
+    },
+    "ReturnTheLocalNodeConfigurationResponse": {
+      "title": "Return the local node configuration response",
+      "example": {
+        "Config": {
+          "Bootstrap": true,
+          "Server": true,
+          "Datacenter": "dc1",
+          "DataDir": "/tmp/consul",
+          "DNSRecursor": "",
+          "Domain": "consul.",
+          "LogLevel": "INFO",
+          "NodeName": "foobar",
+          "ClientAddr": "127.0.0.1",
+          "BindAddr": "0.0.0.0",
+          "AdvertiseAddr": "10.1.10.12",
+          "Ports": {
+            "DNS": 8600,
+            "HTTP": 8500,
+            "RPC": 8400,
+            "SerfLan": 8301,
+            "SerfWan": 8302,
+            "Server": 8300
+          },
+          "LeaveOnTerm": false,
+          "SkipLeaveOnInt": false,
+          "StatsiteAddr": "",
+          "Protocol": 1,
+          "EnableDebug": false,
+          "VerifyIncoming": false,
+          "VerifyOutgoing": false,
+          "CAFile": "",
+          "CertFile": "",
+          "KeyFile": "",
+          "StartJoin": [],
+          "UiDir": "",
+          "PidFile": "",
+          "EnableSyslog": false,
+          "RejoinAfterLeave": false
+        },
+        "Member": {
+          "Name": "foobar",
+          "Addr": "10.1.10.12",
+          "Port": 8301,
+          "Tags": {
+            "bootstrap": "1",
+            "dc": "dc1",
+            "port": "8300",
+            "role": "consul",
+            "vsn": "1",
+            "vsn_max": "1",
+            "vsn_min": "1"
+          },
+          "Status": 1,
+          "ProtocolMin": 1,
+          "ProtocolMax": 2,
+          "ProtocolCur": 2,
+          "DelegateMin": 2,
+          "DelegateMax": 4,
+          "DelegateCur": 4
+        }
+      },
+      "type": "object",
+      "properties": {
+        "Config": {
+          "description": "",
+          "example": {
+            "Bootstrap": true,
+            "Server": true,
+            "Datacenter": "dc1",
+            "DataDir": "/tmp/consul",
+            "DNSRecursor": "",
+            "Domain": "consul.",
+            "LogLevel": "INFO",
+            "NodeName": "foobar",
+            "ClientAddr": "127.0.0.1",
+            "BindAddr": "0.0.0.0",
+            "AdvertiseAddr": "10.1.10.12",
+            "Ports": {
+              "DNS": 8600,
+              "HTTP": 8500,
+              "RPC": 8400,
+              "SerfLan": 8301,
+              "SerfWan": 8302,
+              "Server": 8300
+            },
+            "LeaveOnTerm": false,
+            "SkipLeaveOnInt": false,
+            "StatsiteAddr": "",
+            "Protocol": 1,
+            "EnableDebug": false,
+            "VerifyIncoming": false,
+            "VerifyOutgoing": false,
+            "CAFile": "",
+            "CertFile": "",
+            "KeyFile": "",
+            "StartJoin": [],
+            "UiDir": "",
+            "PidFile": "",
+            "EnableSyslog": false,
+            "RejoinAfterLeave": false
+          },
+          "type": "object"
+        },
+        "Member": {
+          "description": "",
+          "example": {
+            "Name": "foobar",
+            "Addr": "10.1.10.12",
+            "Port": 8301,
+            "Tags": {
+              "bootstrap": "1",
+              "dc": "dc1",
+              "port": "8300",
+              "role": "consul",
+              "vsn": "1",
+              "vsn_max": "1",
+              "vsn_min": "1"
+            },
+            "Status": 1,
+            "ProtocolMin": 1,
+            "ProtocolMax": 2,
+            "ProtocolCur": 2,
+            "DelegateMin": 2,
+            "DelegateMax": 4,
+            "DelegateCur": 4
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "Config",
+        "Member"
+      ]
+    },
+    "RegisterANewLocalCheckRequest": {
+      "title": "Register a new local check request",
+      "example": {
+        "ID": "mem",
+        "Name": "Memory utilization",
+        "Notes": "Ensure we don't oversubscribe memory",
+        "Script": "/usr/local/bin/check_mem.py",
+        "Interval": "10s",
+        "TTL": "15s"
+      },
+      "type": "object",
+      "properties": {
+        "ID": {
+          "description": "",
+          "example": "mem",
+          "type": "string"
+        },
+        "Name": {
+          "description": "",
+          "example": "Memory utilization",
+          "type": "string"
+        },
+        "Notes": {
+          "description": "",
+          "example": "Ensure we don't oversubscribe memory",
+          "type": "string"
+        },
+        "Script": {
+          "description": "",
+          "example": "/usr/local/bin/check_mem.py",
+          "type": "string"
+        },
+        "Interval": {
+          "description": "",
+          "example": "10s",
+          "type": "string"
+        },
+        "TTL": {
+          "description": "",
+          "example": "15s",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ID",
+        "Name",
+        "Notes",
+        "Script",
+        "Interval",
+        "TTL"
+      ]
+    },
+    "State": {
+      "title": "state",
+      "example": "pass",
+      "type": "string",
+      "enum": [
+        "pass",
+        "warn",
+        "fail"
+      ]
+    },
+    "RegistersANewLocalServiceRequest": {
+      "title": "Registers a new local service request",
+      "example": {
+        "ID": "redis1",
+        "Name": "redis",
+        "Tags": [
+          "master",
+          "v1"
+        ],
+        "Port": 8000,
+        "Check": {
+          "Script": "/usr/local/bin/check_redis.py",
+          "Interval": "10s",
+          "TTL": "15s"
+        }
+      },
+      "type": "object",
+      "properties": {
+        "ID": {
+          "description": "",
+          "example": "redis1",
+          "type": "string"
+        },
+        "Name": {
+          "description": "",
+          "example": "redis",
+          "type": "string"
+        },
+        "Tags": {
+          "description": "",
+          "example": [
+            "master",
+            "v1"
+          ],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "Port": {
+          "description": "",
+          "example": 8000,
+          "type": "integer",
+          "format": "int32"
+        },
+        "Check": {
+          "description": "",
+          "example": {
+            "Script": "/usr/local/bin/check_redis.py",
+            "Interval": "10s",
+            "TTL": "15s"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "ID",
+        "Name",
+        "Tags",
+        "Port",
+        "Check"
+      ]
+    },
+    "RegistersANewNode,Service,OrCheckRequest": {
+      "title": "Registers a new node, service, or check request",
+      "example": {
+        "Datacenter": "dc1",
+        "Node": "foobar",
+        "Address": "192.168.10.10",
+        "Service": {
+          "ID": "redis1",
+          "Service": "redis",
+          "Tags": [
+            "master",
+            "v1"
+          ],
+          "Port": 8000
+        },
+        "Check": {
+          "Node": "foobar",
+          "CheckID": "service:redis1",
+          "Name": "Redis health check",
+          "Notes": "Script based health check",
+          "Status": "passing",
+          "ServiceID": "redis1"
+        }
+      },
+      "type": "object",
+      "properties": {
+        "Datacenter": {
+          "description": "",
+          "example": "dc1",
+          "type": "string"
+        },
+        "Node": {
+          "description": "",
+          "example": "foobar",
+          "type": "string"
+        },
+        "Address": {
+          "description": "",
+          "example": "192.168.10.10",
+          "type": "string"
+        },
+        "Service": {
+          "description": "",
+          "example": {
+            "ID": "redis1",
+            "Service": "redis",
+            "Tags": [
+              "master",
+              "v1"
+            ],
+            "Port": 8000
+          },
+          "type": "object"
+        },
+        "Check": {
+          "description": "",
+          "example": {
+            "Node": "foobar",
+            "CheckID": "service:redis1",
+            "Name": "Redis health check",
+            "Notes": "Script based health check",
+            "Status": "passing",
+            "ServiceID": "redis1"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "Datacenter",
+        "Node",
+        "Address",
+        "Service",
+        "Check"
+      ]
+    },
+    "DeregistersANode,Service,OrCheckRequest": {
+      "title": "Deregisters a node, service, or check request",
+      "example": {
+        "Datacenter": "dc1",
+        "Node": "foobar"
+      },
+      "type": "object",
+      "properties": {
+        "Datacenter": {
+          "description": "",
+          "example": "dc1",
+          "type": "string"
+        },
+        "Node": {
+          "description": "",
+          "example": "foobar",
+          "type": "string"
+        }
+      },
+      "required": [
+        "Datacenter",
+        "Node"
+      ]
+    },
+    "DeregistersANode,Service,OrCheckRequest10": {
+      "title": "Deregisters a node, service, or check request10",
+      "type": "object",
+      "properties": {
+        "Datacenter": {
+          "description": "",
+          "example": "dc1",
+          "type": "string"
+        },
+        "Node": {
+          "description": "",
+          "example": "foobar",
+          "type": "string"
+        },
+        "CheckID": {
+          "description": "",
+          "example": "service:redis1",
+          "type": "string"
+        }
+      },
+      "required": [
+        "Datacenter",
+        "Node",
+        "CheckID"
+      ]
+    },
+    "DeregistersANode,Service,OrCheckRequest11": {
+      "title": "Deregisters a node, service, or check request11",
+      "type": "object",
+      "properties": {
+        "Datacenter": {
+          "description": "",
+          "example": "dc1",
+          "type": "string"
+        },
+        "Node": {
+          "description": "",
+          "example": "foobar",
+          "type": "string"
+        },
+        "ServiceID": {
+          "description": "",
+          "example": "redis1",
+          "type": "string"
+        }
+      },
+      "required": [
+        "Datacenter",
+        "Node",
+        "ServiceID"
+      ]
+    },
+    "ListsNodesInAGivenDcResponse": {
+      "title": "Lists nodes in a given DC response",
+      "example": {
+        "Node": "baz",
+        "Address": "10.1.10.11"
+      },
+      "type": "object",
+      "properties": {
+        "Node": {
+          "description": "",
+          "example": "baz",
+          "type": "string"
+        },
+        "Address": {
+          "description": "",
+          "example": "10.1.10.11",
+          "type": "string"
+        }
+      },
+      "required": [
+        "Node",
+        "Address"
+      ]
+    },
+    "ListsServicesInAGivenDcResponse": {
+      "title": "Lists services in a given DC response",
+      "example": {
+        "consul": [],
+        "redis": [],
+        "postgresql": [
+          "master",
+          "slave"
+        ]
+      },
+      "type": "object",
+      "properties": {
+        "consul": {
+          "description": "",
+          "example": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "redis": {
+          "description": "",
+          "example": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "postgresql": {
+          "description": "",
+          "example": [
+            "master",
+            "slave"
+          ],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "consul",
+        "redis",
+        "postgresql"
+      ]
+    },
+    "ListsTheNodesInAGivenServiceResponse": {
+      "title": "Lists the nodes in a given service response",
+      "example": {
+        "Node": "foobar",
+        "Address": "10.1.10.12",
+        "ServiceID": "redis",
+        "ServiceName": "redis",
+        "ServiceTags": "null",
+        "ServicePort": 8000
+      },
+      "type": "object",
+      "properties": {
+        "Node": {
+          "description": "",
+          "example": "foobar",
+          "type": "string"
+        },
+        "Address": {
+          "description": "",
+          "example": "10.1.10.12",
+          "type": "string"
+        },
+        "ServiceID": {
+          "description": "",
+          "example": "redis",
+          "type": "string"
+        },
+        "ServiceName": {
+          "description": "",
+          "example": "redis",
+          "type": "string"
+        },
+        "ServiceTags": {
+          "description": "",
+          "type": "string"
+        },
+        "ServicePort": {
+          "description": "",
+          "example": 8000,
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "required": [
+        "Node",
+        "Address",
+        "ServiceID",
+        "ServiceName",
+        "ServiceTags",
+        "ServicePort"
+      ]
+    },
+    "ListsTheServicesProvidedByANodeResponse": {
+      "title": "Lists the services provided by a node response",
+      "example": {
+        "Node": {
+          "Node": "foobar",
+          "Address": "10.1.10.12"
+        },
+        "Services": {
+          "consul": {
+            "ID": "consul",
+            "Service": "consul",
+            "Tags": null,
+            "Port": 8300
+          },
+          "redis": {
+            "ID": "redis",
+            "Service": "redis",
+            "Tags": [
+              "v1"
+            ],
+            "Port": 8000
+          }
+        }
+      },
+      "type": "object",
+      "properties": {
+        "Node": {
+          "description": "",
+          "example": {
+            "Node": "foobar",
+            "Address": "10.1.10.12"
+          },
+          "type": "object"
+        },
+        "Services": {
+          "description": "",
+          "example": {
+            "consul": {
+              "ID": "consul",
+              "Service": "consul",
+              "Tags": null,
+              "Port": 8300
+            },
+            "redis": {
+              "ID": "redis",
+              "Service": "redis",
+              "Tags": [
+                "v1"
+              ],
+              "Port": 8000
+            }
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "Node",
+        "Services"
+      ]
+    },
+    "ReturnsTheHealthInfoOfANodeResponse": {
+      "title": "Returns the health info of a node response",
+      "example": {
+        "Node": "foobar",
+        "CheckID": "serfHealth",
+        "Name": "Serf Health Status",
+        "Status": "passing",
+        "Notes": "",
+        "Output": "",
+        "ServiceID": "",
+        "ServiceName": ""
+      },
+      "type": "object",
+      "properties": {
+        "Node": {
+          "description": "",
+          "example": "foobar",
+          "type": "string"
+        },
+        "CheckID": {
+          "description": "",
+          "example": "serfHealth",
+          "type": "string"
+        },
+        "Name": {
+          "description": "",
+          "example": "Serf Health Status",
+          "type": "string"
+        },
+        "Status": {
+          "description": "",
+          "example": "passing",
+          "type": "string"
+        },
+        "Notes": {
+          "description": "",
+          "type": "string"
+        },
+        "Output": {
+          "description": "",
+          "type": "string"
+        },
+        "ServiceID": {
+          "description": "",
+          "type": "string"
+        },
+        "ServiceName": {
+          "description": "",
+          "type": "string"
+        }
+      },
+      "required": [
+        "Node",
+        "CheckID",
+        "Name",
+        "Status",
+        "Notes",
+        "Output",
+        "ServiceID",
+        "ServiceName"
+      ]
+    },
+    "ReturnsTheChecksOfAServiceResponse": {
+      "title": "Returns the checks of a service response",
+      "example": {
+        "Node": "foobar",
+        "CheckID": "service:redis",
+        "Name": "Service 'redis' check",
+        "Status": "passing",
+        "Notes": "",
+        "Output": "",
+        "ServiceID": "redis",
+        "ServiceName": "redis"
+      },
+      "type": "object",
+      "properties": {
+        "Node": {
+          "description": "",
+          "example": "foobar",
+          "type": "string"
+        },
+        "CheckID": {
+          "description": "",
+          "example": "service:redis",
+          "type": "string"
+        },
+        "Name": {
+          "description": "",
+          "example": "Service 'redis' check",
+          "type": "string"
+        },
+        "Status": {
+          "description": "",
+          "example": "passing",
+          "type": "string"
+        },
+        "Notes": {
+          "description": "",
+          "type": "string"
+        },
+        "Output": {
+          "description": "",
+          "type": "string"
+        },
+        "ServiceID": {
+          "description": "",
+          "example": "redis",
+          "type": "string"
+        },
+        "ServiceName": {
+          "description": "",
+          "example": "redis",
+          "type": "string"
+        }
+      },
+      "required": [
+        "Node",
+        "CheckID",
+        "Name",
+        "Status",
+        "Notes",
+        "Output",
+        "ServiceID",
+        "ServiceName"
+      ]
+    },
+    "ReturnsTheNodesAndHealthInfoOfAServiceResponse": {
+      "title": "Returns the nodes and health info of a service response",
+      "example": {
+        "Node": {
+          "Node": "foobar",
+          "Address": "10.1.10.12"
+        },
+        "Service": {
+          "ID": "redis",
+          "Service": "redis",
+          "Tags": null,
+          "Port": 8000
+        },
+        "Checks": [
+          {
+            "Node": "foobar",
+            "CheckID": "service:redis",
+            "Name": "Service 'redis' check",
+            "Status": "passing",
+            "Notes": "",
+            "Output": "",
+            "ServiceID": "redis",
+            "ServiceName": "redis"
+          },
+          {
+            "Node": "foobar",
+            "CheckID": "serfHealth",
+            "Name": "Serf Health Status",
+            "Status": "passing",
+            "Notes": "",
+            "Output": "",
+            "ServiceID": "",
+            "ServiceName": ""
+          }
+        ]
+      },
+      "type": "object",
+      "properties": {
+        "Node": {
+          "description": "",
+          "example": {
+            "Node": "foobar",
+            "Address": "10.1.10.12"
+          },
+          "type": "object"
+        },
+        "Service": {
+          "description": "",
+          "example": {
+            "ID": "redis",
+            "Service": "redis",
+            "Tags": null,
+            "Port": 8000
+          },
+          "type": "object"
+        },
+        "Checks": {
+          "description": "",
+          "example": [
+            {
+              "Node": "foobar",
+              "CheckID": "service:redis",
+              "Name": "Service 'redis' check",
+              "Status": "passing",
+              "Notes": "",
+              "Output": "",
+              "ServiceID": "redis",
+              "ServiceName": "redis"
+            },
+            {
+              "Node": "foobar",
+              "CheckID": "serfHealth",
+              "Name": "Serf Health Status",
+              "Status": "passing",
+              "Notes": "",
+              "Output": "",
+              "ServiceID": "",
+              "ServiceName": ""
+            }
+          ],
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "required": [
+        "Node",
+        "Service",
+        "Checks"
+      ]
+    },
+    "State19": {
+      "title": "state19",
+      "example": "any",
+      "type": "string",
+      "enum": [
+        "any",
+        "unknown",
+        "passing",
+        "warning",
+        "critical"
+      ]
+    },
+    "ReturnsTheChecksInAGivenStateResponse": {
+      "title": "Returns the checks in a given state response",
+      "example": {
+        "Node": "foobar",
+        "CheckID": "serfHealth",
+        "Name": "Serf Health Status",
+        "Status": "passing",
+        "Notes": "",
+        "Output": "",
+        "ServiceID": "",
+        "ServiceName": ""
+      },
+      "type": "object",
+      "properties": {
+        "Node": {
+          "description": "",
+          "example": "foobar",
+          "type": "string"
+        },
+        "CheckID": {
+          "description": "",
+          "example": "serfHealth",
+          "type": "string"
+        },
+        "Name": {
+          "description": "",
+          "example": "Serf Health Status",
+          "type": "string"
+        },
+        "Status": {
+          "description": "",
+          "example": "passing",
+          "type": "string"
+        },
+        "Notes": {
+          "description": "",
+          "type": "string"
+        },
+        "Output": {
+          "description": "",
+          "type": "string"
+        },
+        "ServiceID": {
+          "description": "",
+          "type": "string"
+        },
+        "ServiceName": {
+          "description": "",
+          "type": "string"
+        }
+      },
+      "required": [
+        "Node",
+        "CheckID",
+        "Name",
+        "Status",
+        "Notes",
+        "Output",
+        "ServiceID",
+        "ServiceName"
+      ]
+    },
+    "CreatesANewSessionRequest": {
+      "title": "Creates a new session request",
+      "type": "object",
+      "properties": {
+        "LockDelay": {
+          "description": "",
+          "example": "15s",
+          "type": "string"
+        },
+        "Name": {
+          "description": "",
+          "example": "my-service-lock",
+          "type": "string"
+        },
+        "Node": {
+          "description": "",
+          "example": "foobar",
+          "type": "string"
+        },
+        "Checks": {
+          "description": "",
+          "example": [
+            "a",
+            "b",
+            "c"
+          ],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "LockDelay",
+        "Name",
+        "Node",
+        "Checks"
+      ]
+    },
+    "CreatesANewSessionResponse": {
+      "title": "Creates a new session response",
+      "example": {
+        "ID": "adf4238a-882b-9ddc-4a9d-5b6758e4159e"
+      },
+      "type": "object",
+      "properties": {
+        "ID": {
+          "description": "",
+          "example": "adf4238a-882b-9ddc-4a9d-5b6758e4159e",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ID"
+      ]
+    },
+    "QueriesAGivenSessionResponse": {
+      "title": "Queries a given session response",
+      "example": {
+        "LockDelay": 15000000000.0,
+        "Checks": [
+          "serfHealth"
+        ],
+        "Node": "foobar",
+        "ID": "adf4238a-882b-9ddc-4a9d-5b6758e4159e",
+        "CreateIndex": 1086449
+      },
+      "type": "object",
+      "properties": {
+        "LockDelay": {
+          "description": "",
+          "example": 15000000000,
+          "type": "number",
+          "format": "double"
+        },
+        "Checks": {
+          "description": "",
+          "example": [
+            "serfHealth"
+          ],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "Node": {
+          "description": "",
+          "example": "foobar",
+          "type": "string"
+        },
+        "ID": {
+          "description": "",
+          "example": "adf4238a-882b-9ddc-4a9d-5b6758e4159e",
+          "type": "string"
+        },
+        "CreateIndex": {
+          "description": "",
+          "example": 1086449,
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "required": [
+        "LockDelay",
+        "Checks",
+        "Node",
+        "ID",
+        "CreateIndex"
+      ]
+    },
+    "ListsSessionsBelongingToANodeResponse": {
+      "title": "Lists sessions belonging to a node response",
+      "type": "object",
+      "properties": {
+        "LockDelay": {
+          "description": "",
+          "example": 15000000000,
+          "type": "number",
+          "format": "double"
+        },
+        "Checks": {
+          "description": "",
+          "example": [
+            "serfHealth"
+          ],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "Node": {
+          "description": "",
+          "example": "foobar",
+          "type": "string"
+        },
+        "ID": {
+          "description": "",
+          "example": "adf4238a-882b-9ddc-4a9d-5b6758e4159e",
+          "type": "string"
+        },
+        "CreateIndex": {
+          "description": "",
+          "example": 1086449,
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "required": [
+        "LockDelay",
+        "Checks",
+        "Node",
+        "ID",
+        "CreateIndex"
+      ]
+    },
+    "ListsAllTheActiveSessionsResponse": {
+      "title": "Lists all the active sessions response",
+      "type": "object",
+      "properties": {
+        "LockDelay": {
+          "description": "",
+          "example": 15000000000,
+          "type": "number",
+          "format": "double"
+        },
+        "Checks": {
+          "description": "",
+          "example": [
+            "serfHealth"
+          ],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "Node": {
+          "description": "",
+          "example": "foobar",
+          "type": "string"
+        },
+        "ID": {
+          "description": "",
+          "example": "adf4238a-882b-9ddc-4a9d-5b6758e4159e",
+          "type": "string"
+        },
+        "CreateIndex": {
+          "description": "",
+          "example": 1086449,
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "required": [
+        "LockDelay",
+        "Checks",
+        "Node",
+        "ID",
+        "CreateIndex"
+      ]
+    },
+    "CreatesANewTokenWithPolicyRequest": {
+      "title": "Creates a new token with policy request",
+      "type": "object",
+      "properties": {
+        "Name": {
+          "description": "",
+          "example": "my-app-token",
+          "type": "string"
+        },
+        "Type": {
+          "description": "",
+          "example": "client",
+          "type": "string"
+        },
+        "Rules": {
+          "description": "",
+          "type": "string"
+        }
+      },
+      "required": [
+        "Name",
+        "Type",
+        "Rules"
+      ]
+    },
+    "CreatesANewTokenWithPolicyResponse": {
+      "title": "Creates a new token with policy response",
+      "example": {
+        "ID": "adf4238a-882b-9ddc-4a9d-5b6758e4159e"
+      },
+      "type": "object",
+      "properties": {
+        "ID": {
+          "description": "",
+          "example": "adf4238a-882b-9ddc-4a9d-5b6758e4159e",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ID"
+      ]
+    },
+    "UpdateThePolicyOfATokenRequest": {
+      "title": "Update the policy of a token request",
+      "type": "object",
+      "properties": {
+        "ID": {
+          "description": "",
+          "example": "adf4238a-882b-9ddc-4a9d-5b6758e4159e",
+          "type": "string"
+        },
+        "Name": {
+          "description": "",
+          "example": "my-app-token-updated",
+          "type": "string"
+        },
+        "Type": {
+          "description": "",
+          "example": "client",
+          "type": "string"
+        },
+        "Rules": {
+          "description": "",
+          "example": "# New Rules",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ID",
+        "Name",
+        "Type",
+        "Rules"
+      ]
+    },
+    "QueriesThePolicyOfAGivenTokenResponse": {
+      "title": "Queries the policy of a given token response",
+      "example": {
+        "CreateIndex": 3,
+        "ModifyIndex": 3,
+        "ID": "8f246b77-f3e1-ff88-5b48-8ec93abf3e05",
+        "Name": "Client Token",
+        "Type": "client",
+        "Rules": "..."
+      },
+      "type": "object",
+      "properties": {
+        "CreateIndex": {
+          "description": "",
+          "example": 3,
+          "type": "integer",
+          "format": "int32"
+        },
+        "ModifyIndex": {
+          "description": "",
+          "example": 3,
+          "type": "integer",
+          "format": "int32"
+        },
+        "ID": {
+          "description": "",
+          "example": "8f246b77-f3e1-ff88-5b48-8ec93abf3e05",
+          "type": "string"
+        },
+        "Name": {
+          "description": "",
+          "example": "Client Token",
+          "type": "string"
+        },
+        "Type": {
+          "description": "",
+          "example": "client",
+          "type": "string"
+        },
+        "Rules": {
+          "description": "",
+          "example": "...",
+          "type": "string"
+        }
+      },
+      "required": [
+        "CreateIndex",
+        "ModifyIndex",
+        "ID",
+        "Name",
+        "Type",
+        "Rules"
+      ]
+    },
+    "CreatesANewTokenByCloningAnExistingTokenResponse": {
+      "title": "Creates a new token by cloning an existing token response",
+      "example": {
+        "ID": "adf4238a-882b-9ddc-4a9d-5b6758e4159e"
+      },
+      "type": "object",
+      "properties": {
+        "ID": {
+          "description": "",
+          "example": "adf4238a-882b-9ddc-4a9d-5b6758e4159e",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ID"
+      ]
+    },
+    "ListsAllTheActiveTokensResponse": {
+      "title": "Lists all the active tokens response",
+      "type": "object",
+      "properties": {
+        "CreateIndex": {
+          "description": "",
+          "example": 3,
+          "type": "integer",
+          "format": "int32"
+        },
+        "ModifyIndex": {
+          "description": "",
+          "example": 3,
+          "type": "integer",
+          "format": "int32"
+        },
+        "ID": {
+          "description": "",
+          "example": "8f246b77-f3e1-ff88-5b48-8ec93abf3e05",
+          "type": "string"
+        },
+        "Name": {
+          "description": "",
+          "example": "Client Token",
+          "type": "string"
+        },
+        "Type": {
+          "description": "",
+          "example": "client",
+          "type": "string"
+        },
+        "Rules": {
+          "description": "",
+          "example": "...",
+          "type": "string"
+        }
+      },
+      "required": [
+        "CreateIndex",
+        "ModifyIndex",
+        "ID",
+        "Name",
+        "Type",
+        "Rules"
+      ]
+    },
+    "FiresANewUserEventResponse": {
+      "title": "Fires a new user event response",
+      "example": {
+        "ID": "b54fe110-7af5-cafc-d1fb-afc8ba432b1c",
+        "Name": "deploy",
+        "Payload": "null",
+        "NodeFilter": "",
+        "ServiceFilter": "",
+        "TagFilter": "",
+        "Version": 1,
+        "LTime": 0
+      },
+      "type": "object",
+      "properties": {
+        "ID": {
+          "description": "",
+          "example": "b54fe110-7af5-cafc-d1fb-afc8ba432b1c",
+          "type": "string"
+        },
+        "Name": {
+          "description": "",
+          "example": "deploy",
+          "type": "string"
+        },
+        "Payload": {
+          "description": "",
+          "type": "string"
+        },
+        "NodeFilter": {
+          "description": "",
+          "type": "string"
+        },
+        "ServiceFilter": {
+          "description": "",
+          "type": "string"
+        },
+        "TagFilter": {
+          "description": "",
+          "type": "string"
+        },
+        "Version": {
+          "description": "",
+          "example": 1,
+          "type": "integer",
+          "format": "int32"
+        },
+        "LTime": {
+          "description": "",
+          "example": 0,
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "required": [
+        "ID",
+        "Name",
+        "Payload",
+        "NodeFilter",
+        "ServiceFilter",
+        "TagFilter",
+        "Version",
+        "LTime"
+      ]
+    },
+    "ListsTheMostRecentEventsAnAgentHasSeen.Response": {
+      "title": "Lists the most recent events an agent has seen. response",
+      "type": "object",
+      "properties": {
+        "ID": {
+          "description": "",
+          "example": "b54fe110-7af5-cafc-d1fb-afc8ba432b1c",
+          "type": "string"
+        },
+        "Name": {
+          "description": "",
+          "example": "deploy",
+          "type": "string"
+        },
+        "Payload": {
+          "description": "",
+          "example": "MTYwOTAzMA==",
+          "type": "string"
+        },
+        "NodeFilter": {
+          "description": "",
+          "type": "string"
+        },
+        "ServiceFilter": {
+          "description": "",
+          "type": "string"
+        },
+        "TagFilter": {
+          "description": "",
+          "type": "string"
+        },
+        "Version": {
+          "description": "",
+          "example": 1,
+          "type": "integer",
+          "format": "int32"
+        },
+        "LTime": {
+          "description": "",
+          "example": 19,
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "required": [
+        "ID",
+        "Name",
+        "Payload",
+        "NodeFilter",
+        "ServiceFilter",
+        "TagFilter",
+        "Version",
+        "LTime"
+      ]
+    }
+  }
+}
